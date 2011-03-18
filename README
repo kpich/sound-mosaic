@@ -1,0 +1,15 @@
+A little project to slice up a source soundfile and a destination soundfile and try to recreate the destination soundfile as faithfully as possible using pieces of the source soundfile.
+
+This project is written in python and uses Marsyas ( http://marsyas.info/ ).
+
+You must build Marsyas with the WITH_SWIG option turned on in ccmake, install it on your system, and then use python 2.6 to run this code.
+
+To run this (assuming you're using python26 and have Marsyas installed), call
+    python make-sound-mosaic.py --source=source.wav --dest=dest.wav --windowsize=100 --output=foo
+and you'll get four files:
+    *'output/foo.wav': the stitched-together wavfile trying to sound like dest.
+    *'output/foo-src.arff': the feature vectors for each window of the input file.
+    *'output/foo-dest.arff': the feature vectors for each window of the output file.
+    *'output/dist-matrix.txt': a representation of the n x n triangular matrix representing distances between all the different windows
+
+More information about how to build Marsyas so Python can interoperate with it can be found in the Marsyas user manual http://marsyas.info/docs/manual/marsyas-user/index.html
