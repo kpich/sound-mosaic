@@ -1,11 +1,11 @@
-#import marsyas
 import argparse
 import os
 import subprocess
-import time
 
-OUTDIR = 'output'
+OUTDIR = 'output/'
 SAMPLE_RATE = 44100
+SRC_LABEL = 'source'
+DEST_LABEL = 'dest'
 
 def optionally_add_output_dir():
     try:
@@ -13,19 +13,42 @@ def optionally_add_output_dir():
     except:
         pass
 
+def make_arff_filename(outputid):
+    return OUTDIR + outputid + '.arff'
+
+def make_dm_filename(outputid):
+    return OUTDIR + outputid + '-matrix.txt'
+
 def extract_features(collection, outputid, windowsizems):
     windowSampleSize = (SAMPLE_RATE / 1000) * windowsizems
     subprocess.Popen(['bextract', collection.name,
-                      '-w', 'output/' + outputid + '.arff',
+                      '-w', make_arff_filename(outputid),
                       '-ws', str(windowSampleSize),
                       '-hp', str(windowSampleSize),
                       '-p', '/dev/null']).communicate()
     subprocess.Popen(['kea', '-m', 'distance_matrix',
-                      '-dm', 'output/' + outputid + '-matrix.txt',
-                     '-w', 'output/' + outputid + '.arff']).communicate()
+                      '-dm', make_dm_filename(outputid),
+                     '-w', make_arff_filename(outputid)]).communicate()
 
 def match_windows(outputid):
-    pass
+    ''' For each dest window, finds the closes source window.
+
+    NOTE it is very important that in the input .mf file, the source files
+    all appear together, before the dest files.
+    '''
+    srclen, destlen = get_source_dest_window_counts(outputid)
+    print srclen
+    print destlen
+
+def get_source_dest_window_counts(outputid):
+    lines = open(make_arff_filename(outputid), 'r').readlines()
+    return len(filter(is_src_line, lines)), len(filter(is_dest_line, lines))
+
+def is_src_line(line):
+    return line.strip().endswith(',' + SRC_LABEL)
+
+def is_dest_line(line):
+    return line.strip().endswith(',' + DEST_LABEL)
 
 def create_output_wavfile(outputid):
     pass
