@@ -1,5 +1,7 @@
 import argparse
+import itertools
 import os
+import re
 import subprocess
 
 OUTDIR = 'output/'
@@ -37,8 +39,40 @@ def match_windows(outputid):
     all appear together, before the dest files.
     '''
     srclen, destlen = get_source_dest_window_counts(outputid)
-    print srclen
-    print destlen
+    dists = get_src_dest_dists(outputid, srclen, destlen)
+    print [argmin(x) for x in dists]
+    return [argmin(x) for x in dists]
+
+def argmin(li):
+    '''cribbed from http://lemire.me/blog/archives/2004/11/25/computing-argmax-fast-in-python/'''
+    return min(itertools.izip(li, xrange(len(li))))[1]
+
+def get_src_dest_dists(outputid, srclen, destlen):
+    '''returns a destlen-elem list of srclen-elem lists: all relevant distances.
+    '''
+    dists = [[-1.0 for x in range(srclen)] for y in range(destlen)]
+    firstdestind = srclen
+    for line in open(make_dm_filename(outputid), 'r'):
+        if is_interesting_line(line, firstdestind):
+            add_dist_to_dists(line, dists, firstdestind)
+    #make sure our lists are fully populated
+    for li in dists:
+        assert -1.0 not in li
+    return dists
+
+def is_interesting_line(line, firstdestind):
+    m = re.match(r'\((\d+),(\d+)\)', line)
+    return (m and 
+           int(m.group(1)) < firstdestind and
+           int(m.group(2)) >= firstdestind)
+
+def add_dist_to_dists(line, dists, firstdestind):
+    m = re.match(r'\((\d+),(\d+)\)\s*=\s*([0-9.]+)', line)
+    assert m
+    i = int(m.group(1))
+    j = int(m.group(2))
+    d = float(m.group(3))
+    dists[j - firstdestind][i] = d
 
 def get_source_dest_window_counts(outputid):
     lines = open(make_arff_filename(outputid), 'r').readlines()
