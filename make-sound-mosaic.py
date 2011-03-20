@@ -44,7 +44,10 @@ def extract_features(srcfile, destfile, outputid, windowsizems):
                       '-w', make_arff_filename(outputid),
                       '-ws', str(windowSampleSize),
                       '-hp', str(windowSampleSize),
-                      '-m', '1',
+                      '-mfcc', '-ctd', '-sfm', '-scf', '-lsp',
+                      #'-ctd',
+                      #'-timbral', '-chroma', '-sfm', '-scf', '-lsp',
+                      '-m', '0',
                       '-fe']).communicate()
     subprocess.Popen(['kea', '-m', 'distance_matrix',
                       '-dm', make_dm_filename(outputid),
@@ -65,9 +68,9 @@ def argmin(li):
     return min(itertools.izip(li, xrange(len(li))))[1]
 
 def get_src_dest_dists(outputid, srclen, destlen):
-    '''returns a destlen-elem list of srclen-elem lists: all relevant distances.
+    '''returns a destlen-elem list of srclen-elem - 1 lists: all relevant distances.
     '''
-    dists = [[-1.0 for x in range(srclen)] for y in range(destlen)]
+    dists = [[-1.0 for x in range(srclen - 1)] for y in range(destlen)]
     firstdestind = srclen
     for line in open(make_dm_filename(outputid), 'r'):
         if is_interesting_line(line, firstdestind):
@@ -80,7 +83,7 @@ def get_src_dest_dists(outputid, srclen, destlen):
 def is_interesting_line(line, firstdestind):
     m = re.match(r'\((\d+),(\d+)\)', line)
     return (m and 
-           int(m.group(1)) < firstdestind and
+           int(m.group(1)) < firstdestind - 1 and
            int(m.group(2)) >= firstdestind)
 
 def add_dist_to_dists(line, dists, firstdestind):
@@ -136,7 +139,6 @@ def parse_command_line_args():
 
 if __name__ == '__main__':
     options = parse_command_line_args()
-    print options
     optionally_add_output_dir()
     extract_features(options.src,
                      options.dest,
