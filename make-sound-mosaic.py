@@ -22,6 +22,9 @@ def make_arff_filename(outputid):
 def make_dm_filename(outputid):
     return OUTDIR + outputid + '-matrix.txt'
 
+def make_result_wavfilename(outputid):
+    return OUTDIR + outputid + '.wav'
+
 def make_mf_filename(outputid):
     return TMPDIR + outputid + '.mf'
 
@@ -102,6 +105,9 @@ def is_dest_line(line):
 def create_output_wavfile(srcfile, destfile, windowmatches, outputid, windowsizems):
     windowsizesamples = (SAMPLE_RATE / 1000) * windowsizems
     make_src_snippets_in_tmp(srcfile, windowmatches, outputid, windowsizesamples)
+    subprocess.Popen(['sox'] +
+                     [make_tmp_window_wavfilename(m, outputid) for m in windowmatches] +
+                     [make_result_wavfilename(outputid)]).communicate()
 
 def make_src_snippets_in_tmp(srcfile, windowmatches, outputid, windowsizesamples):
     for m in windowmatches:
