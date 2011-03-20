@@ -25,12 +25,14 @@ def extract_features(collection, outputid, windowsizems):
     windowSampleSize = (SAMPLE_RATE / 1000) * windowsizems
     subprocess.Popen(['bextract', collection.name,
                       '-w', make_arff_filename(outputid),
+                      '-mfcc',
                       '-ws', str(windowSampleSize),
                       '-hp', str(windowSampleSize),
-                      '-p', '/dev/null']).communicate()
+                      '-m', '1',
+                      '-fe']).communicate()
     subprocess.Popen(['kea', '-m', 'distance_matrix',
                       '-dm', make_dm_filename(outputid),
-                     '-w', make_arff_filename(outputid)]).communicate()
+                      '-w', make_arff_filename(outputid)]).communicate()
 
 def match_windows(outputid):
     ''' For each dest window, finds the closes source window.
@@ -40,7 +42,6 @@ def match_windows(outputid):
     '''
     srclen, destlen = get_source_dest_window_counts(outputid)
     dists = get_src_dest_dists(outputid, srclen, destlen)
-    print [argmin(x) for x in dists]
     return [argmin(x) for x in dists]
 
 def argmin(li):
