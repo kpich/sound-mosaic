@@ -4,8 +4,8 @@ This project is written in python and uses Marsyas ( http://marsyas.info/ ) and 
 
 You must have marsyas and sox installed on your system and the various executables (namely bextract, kea, and sox) on your path.
 
-To run this, first create a marsyas collection with the source and destination wavfiles labeled "source" and "dest", then call
-    python make-sound-mosaic.py --collection=coll.mf --windowsize=100 --output=foo
+To run this, call
+    python make-sound-mosaic.py --src=in.wav --dest=out.wav --windowsize=100 --output=foo
 and you'll get three files:
     *'output/foo.wav': the stitched-together wavfile trying to sound like dest.
     *'output/foo.arff': the feature vectors for each window of the input file, labeled with either "source" or "dest"
