@@ -28,8 +28,8 @@ def make_result_wavfilename(outputid):
 def make_mf_filename(outputid):
     return TMPDIR + outputid + '.mf'
 
-def make_tmp_window_wavfilename(windownum, outputid):
-    return TMPDIR + outputid + "_" + str(windownum) + ".wav"
+def make_tmp_raw_filename(outputid):
+    return TMPDIR + outputid + '.raw'
 
 def make_mf_file(srcfile, destfile, outputid):
     f = open(make_mf_filename(outputid), 'w')
@@ -42,7 +42,6 @@ def extract_features(srcfile, destfile, outputid, windowsizems):
     make_mf_file(srcfile, destfile, outputid)
     subprocess.Popen(['bextract', make_mf_filename(outputid),
                       '-w', make_arff_filename(outputid),
-                      '-mfcc',
                       '-ws', str(windowSampleSize),
                       '-hp', str(windowSampleSize),
                       '-m', '1',
@@ -104,19 +103,23 @@ def is_dest_line(line):
 
 def create_output_wavfile(srcfile, destfile, windowmatches, outputid, windowsizems):
     windowsizesamples = (SAMPLE_RATE / 1000) * windowsizems
-    make_src_snippets_in_tmp(srcfile, windowmatches, outputid, windowsizesamples)
-    subprocess.Popen(['sox'] +
-                     [make_tmp_window_wavfilename(m, outputid) for m in windowmatches] +
-                     [make_result_wavfilename(outputid)]).communicate()
+    make_tmp_raw_audio(srcfile, windowmatches, outputid, windowsizesamples)
+    subprocess.Popen('sox -c1 -s2 -r' + str(SAMPLE_RATE) + ' ' +
+                     make_tmp_raw_filename(outputid) + ' ' +
+                     make_result_wavfilename(outputid),
+                     shell=True).communicate()
 
-def make_src_snippets_in_tmp(srcfile, windowmatches, outputid, windowsizesamples):
-    for m in windowmatches:
-        subprocess.Popen(['sox',
-                          srcfile.name,
-                          make_tmp_window_wavfilename(m, outputid),
-                          'trim',
-                          str(m * windowsizesamples) + 's',
-                          str(windowsizesamples) + 's']).communicate()
+def make_tmp_raw_audio(srcfile, windowmatches, outputid, windowsizesamples):
+    outfile = make_tmp_raw_filename(outputid)
+    subprocess.Popen('sox -c1 ' + srcfile.name + ' -traw - ' +
+                     'trim ' + str(windowmatches[0] * windowsizesamples) + 's ' +
+                     str(windowsizesamples) + 's' +
+                     ' > ' + outfile, shell=True).communicate()
+    for m in windowmatches[1:]:
+        subprocess.Popen('sox -c1 ' + srcfile.name + ' -traw - ' +
+                         'trim ' + str(m * windowsizesamples) + 's ' +
+                         str(windowsizesamples) + 's' +
+                         ' >> ' + outfile, shell=True).communicate()
 
 def parse_command_line_args():
     '''returns the ArgParser's parsed options.'''
