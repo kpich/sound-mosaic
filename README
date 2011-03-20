@@ -1,8 +1,8 @@
 A little project to slice up a source soundfile and a destination soundfile and try to recreate the destination soundfile as faithfully as possible using pieces of the source soundfile.
 
-This project is written in python and uses Marsyas ( http://marsyas.info/ ).
+This project is written in python and uses Marsyas ( http://marsyas.info/ ) and SoX ( http://sox.sourceforge.net/ ).
 
-You must have marsyas installed on your system and its various executables (viz. bextract, kea) on your path.
+You must have marsyas and sox installed on your system and the various executables (namely bextract, kea, and sox) on your path.
 
 To run this, first create a marsyas collection with the source and destination wavfiles labeled "source" and "dest", then call
     python make-sound-mosaic.py --collection=coll.mf --windowsize=100 --output=foo
